@@ -1,0 +1,12 @@
+module Sensor {
+	interface Sensor {
+		boolean isFlooding();
+		boolean isActive();
+
+		long getWaterLevel();
+		long getAlarmLevel();
+
+		void setAlarmLevel(in long waterLevel);
+		void setActive(in boolean active);
+	};
+};
