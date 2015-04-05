@@ -1,0 +1,5 @@
+module LMS {
+	interface LMS {
+		void acceptReading(in long reading);
+	};
+};
