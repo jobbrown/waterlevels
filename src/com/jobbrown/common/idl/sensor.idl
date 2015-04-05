@@ -6,7 +6,9 @@ module Sensor {
 		long getWaterLevel();
 		long getAlarmLevel();
 
-		void setAlarmLevel(in long waterLevel);
+		void setAlarmLevel(in long alarmLevel);
+		void setWaterLevel(in long waterLevel);
 		void setActive(in boolean active);
+		void checkAlarmStatus();
 	};
 };
