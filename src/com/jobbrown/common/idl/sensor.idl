@@ -1,4 +1,13 @@
 module Sensor {
+	struct Reading {
+		long time;
+		long date;
+		long waterLevel;
+		long alarmLevel;
+	};
+	
+	typedef sequence<Reading> ReadingLog;
+	
 	interface Sensor {
 		boolean isFlooding();
 		boolean isActive();
@@ -10,5 +19,10 @@ module Sensor {
 		void setWaterLevel(in long waterLevel);
 		void setActive(in boolean active);
 		void checkAlarmStatus();
+		
+		ReadingLog getLog();
+		
 	};
+	
+	
 };

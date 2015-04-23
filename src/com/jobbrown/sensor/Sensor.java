@@ -8,6 +8,7 @@ import org.omg.CosNaming.NamingContextPackage.NotFound;
 import com.jobbrown.common.CorbaHelper;
 import com.jobbrown.sensor.corba.LMS;
 import com.jobbrown.sensor.corba.LMSHelper;
+import com.jobbrown.sensor.corba.Reading;
 import com.jobbrown.sensor.corba.SensorPOA;
 
 public class Sensor extends SensorPOA 
@@ -18,31 +19,55 @@ public class Sensor extends SensorPOA
 	public int ID;
 	
 	/**
+	 * This is the name the model will be bound as in the name service
+	 */
+	public String name;
+	
+	/**
+	 * Zone
+	 */
+	public String zone;
+	
+	/**
 	 * The level at which an alarm should be raised
 	 */
-	public int alarmLevel;
+	public int alarmLevel = 70;
 	
 	/**
 	 * The water level
 	 */
-	public int waterLevel;
+	public int waterLevel = 50;
 	
 	/**
 	 * Whether or not this sensor is active
 	 */
-	public Boolean active;
+	public Boolean active = true;
 	
 	/**
 	 * The GUI that this model is displayed on
 	 */
 	public SensorGUI gui;
-
 	
+	/**
+	 * The log
+	 */
+	public Reading[] log;
+	
+
+	/**
+	 * A reference to the LMS
+	 */
 	public LMS lms;
 	
 	public Sensor(String[] args)
 	{
+		// This is dreadful, I'm sorry.
+		this.log = new Reading[1000];
+		
+		// Establish a conection to the LMS
 		getLMSConnection(args);
+		
+		// Load the settings for this Sensor
 		loadSettings(Integer.parseInt(args[3]));
 	}
 
@@ -85,7 +110,17 @@ public class Sensor extends SensorPOA
 	@Override
 	public void setWaterLevel(int waterLevel) 
 	{
-		this.waterLevel = waterLevel;
+		this.waterLevel = waterLevel;	
+		
+		// Create the reading log
+		Reading reading = new Reading();
+		
+		reading.date = 0;
+		reading.time = 0;
+		reading.waterLevel = waterLevel;
+		reading.alarmLevel = this.alarmLevel;
+		
+		this.log[this.log.length] = reading;
 		
 		// Update the GUI
 		this.update();
@@ -115,6 +150,8 @@ public class Sensor extends SensorPOA
 		if(isFlooding())
 		{
 			// Raise an alarm
+			this.lms.raiseAlarm(this.zone, this.name);
+			this.lms.acceptReading(9999);
 		}
 	}
 	
@@ -133,9 +170,11 @@ public class Sensor extends SensorPOA
 	 */
 	private void loadSettings(int ID)
 	{
-		System.out.println("Loading settings of Sensor " + ID);
-		
 		this.ID = ID;
+		this.name = lms.getSensorName(ID);
+		this.zone = lms.getSensorZone(ID);
+		this.alarmLevel = lms.getSensorAlarmLevel(ID);
+		this.active = lms.getSensorActive(ID);
 	}
 	
 	/**
@@ -155,10 +194,11 @@ public class Sensor extends SensorPOA
 			e.printStackTrace();
 		}
 	}
-	
-	private void registerOnNamingService()
-	{
-		
+
+	@Override
+	public Reading[] getLog() {
+		return this.log;
 	}
+	
 
 }

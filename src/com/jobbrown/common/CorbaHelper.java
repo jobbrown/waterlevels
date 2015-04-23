@@ -10,11 +10,9 @@ import com.jobbrown.lms.corba.LMSHelper;
 
 public class CorbaHelper 
 {
-	public static NamingContextExt getNamingService(String[] args)
+	public static NamingContextExt getNamingService(ORB orb)
 	{
-		try {
-			ORB orb = ORB.init(args, null);
-		
+		try {		
 			// Get a reference to the Naming service
 		    org.omg.CORBA.Object nameServiceObj;
 			

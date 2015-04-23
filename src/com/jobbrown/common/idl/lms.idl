@@ -1,5 +1,11 @@
 module LMS {
 	interface LMS {
 		void acceptReading(in long reading);
+		void raiseAlarm(in string zone, in string raisingSensorName);
+		
+		string getSensorName(in long ID);
+		string getSensorZone(in long ID);
+		long getSensorAlarmLevel(in long ID);
+		boolean getSensorActive(in long ID);
 	};
 };

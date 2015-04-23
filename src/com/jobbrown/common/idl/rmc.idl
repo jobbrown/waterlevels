@@ -1,0 +1,5 @@
+module RMC {	
+	interface RMC {
+		string getHello();		
+	};	
+};

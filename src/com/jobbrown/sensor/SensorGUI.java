@@ -1,9 +1,13 @@
 package com.jobbrown.sensor;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+
 import javax.swing.JFrame;
 import javax.swing.JSlider;
 import javax.swing.SwingConstants;
 import javax.swing.JLabel;
+import javax.swing.Timer;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
@@ -24,11 +28,14 @@ import com.jobbrown.sensor.corba.SensorHelper;
 
 @SuppressWarnings("serial")
 public class SensorGUI extends JFrame {
+	/**
+	 * The Sensor model that this gui is representing
+	 */
 	private Sensor model;
 	
 	private JSlider slider;
 	private JLabel lblSensor, lblSensorID;
-	
+	private Timer slideTimer;
 	
 	
 	
@@ -42,12 +49,9 @@ public class SensorGUI extends JFrame {
 			{
 				// Make the GUI
 				SensorGUI gui = new SensorGUI(args);
-				Sensor model = new Sensor(args);
 				
-				gui.model = model;
-				model.gui = gui;
-				
-				registerWithNameService(args, model);
+				// Make the model
+				gui.loadModel(args);
 				
 				// Set any options
 				gui.setSize(200,300);
@@ -56,6 +60,13 @@ public class SensorGUI extends JFrame {
 				gui.setVisible(true);
 			}
 	    });
+	}
+
+	protected void loadModel(String[] args) {
+		model = new Sensor(args);
+		model.gui = this;
+		
+		registerWithNameService(args, model);
 	}
 
 	public static void registerWithNameService(String[] args, Sensor sensor)
@@ -109,6 +120,7 @@ public class SensorGUI extends JFrame {
 		getContentPane().setLayout(null);
 		
 		slider = new JSlider();
+		
 		slider.setSnapToTicks(true);
 		slider.setPaintLabels(true);
 		slider.setPaintTicks(true);
@@ -126,8 +138,6 @@ public class SensorGUI extends JFrame {
 		lblSensorID = new JLabel("");
 		lblSensorID.setBounds(73, 6, 61, 16);
 		
-		// Load the settings from the model
-		updateGUI();
 		
 		// Add it all to the pane
 		getContentPane().add(lblSensor);
@@ -135,7 +145,6 @@ public class SensorGUI extends JFrame {
 		getContentPane().add(slider);
 		
 		setTitle("Sensor");
-		
 		
 		// Close listener
         addWindowListener(new java.awt.event.WindowAdapter () {
@@ -146,11 +155,21 @@ public class SensorGUI extends JFrame {
         
         // Add a change listener for the water level
         slider.addChangeListener(new ChangeListener() {
-			@Override
-			public void stateChanged(ChangeEvent e) {
-				model.setWaterLevel(slider.getValue());			
-			}
-        });
+        	
+	        @Override
+	        public void stateChanged(ChangeEvent arg0) {
+	            slideTimer.restart();
+	        }
+	    });
+        
+	    slideTimer = new Timer(500, new ActionListener() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	        	model.setWaterLevel(slider.getValue());	
+	        }
+	    });
+	    slideTimer.setRepeats(false);
+
 	}
 	
 	public void updateGUI()
