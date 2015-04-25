@@ -1,5 +1,5 @@
 module RMC {	
 	interface RMC {
-		string getHello();		
+		void registerLMS(in string name);
 	};	
 };

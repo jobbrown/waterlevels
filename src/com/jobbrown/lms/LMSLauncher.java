@@ -17,9 +17,12 @@ import org.omg.PortableServer.POAHelper;
 
 import com.jobbrown.common.CorbaHelper;
 import com.jobbrown.lms.corba.LMSHelper;
+import com.jobbrown.lms.corba.RMC;
+import com.jobbrown.lms.corba.RMCHelper;
 
 public class LMSLauncher {
 	private static ORB orb = null;
+	private static RMC rmc = null;
 	
 	// Launch options
 	private static String orbInitialPort = null;
@@ -62,7 +65,7 @@ public class LMSLauncher {
 	public static void launch()
 	{
 		// Create RMC
-		LMS lms = new LMS();
+		LMS lms = new LMS(getRMC(), LMSLauncher.location);
 		
 		// Register on NS
 		try {
@@ -75,50 +78,41 @@ public class LMSLauncher {
 		    
 		    NamingContextExt nameService = CorbaHelper.getNamingService(orb);
 			
-			// Get a reference to the LMS
-		    try {
-				lms = LMSHelper.narrow(nameService.resolve_str("lms"));
-			} catch (NotFound | CannotProceed | InvalidName e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		    
 		    // Bind this object to the naming service
 		    String name = LMSLauncher.location;
 		    NameComponent[] bindName = nameService.to_name(name);
 		    nameService.rebind(bindName, cref);
 		    
 		    //  wait for invocations from clients
-		    System.out.println("Launched LMS");
-		    
-		    // Register with the RMC
+		    System.out.println("Launched LMS. Waiting ...");
 		    
 		    
-		    // Wait for client invocation 
-		    
-		    System.out.println("Waiting ...");
-		    
-		    // This will need commenting out when we add the GUI
-			orb.run();
+			// orb.run();
 		} catch (Exception e) {
 			System.err.println("Caught error trying to launch RMC");
 			e.printStackTrace();
 		}
 	    
-		// Create GUI
-		// This happens later
+		// Register with RMC
+		lms.registerWithRMC();
+		
+		// This will need commenting out when we add the GUI
+		orb.run();
 	}
 	
 	public static RMC getRMC()
 	{
 		NamingContextExt namingService = CorbaHelper.getNamingService(LMSLauncher.orb);
+		RMC rmc = null;
 		
 		// Get a reference to the LMS
 	    try {
-			RMC rmc = RMCHelper.narrow(namingService.resolve_str("rmc"));
+			rmc = RMCHelper.narrow(namingService.resolve_str("rmc"));
 		} catch (NotFound | CannotProceed | InvalidName e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			System.out.print("Start RMC before starting any LMS instances");
+			System.exit(1);
 		}
+	    
+	    return rmc;
 	}
 }

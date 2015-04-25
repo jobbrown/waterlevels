@@ -1,28 +1,16 @@
 module Sensor {
-	struct Reading {
-		long time;
-		long date;
-		long waterLevel;
-		long alarmLevel;
-	};
-	
-	typedef sequence<Reading> ReadingLog;
 	
 	interface Sensor {
 		boolean isFlooding();
-		boolean isActive();
 
-		long getWaterLevel();
-		long getAlarmLevel();
-
-		void setAlarmLevel(in long alarmLevel);
-		void setWaterLevel(in long waterLevel);
-		void setActive(in boolean active);
 		void checkAlarmStatus();
 		
-		ReadingLog getLog();
-		
+		attribute long id;
+		attribute string name;
+		attribute string zone;
+		attribute long waterLevel;
+		attribute long alarmLevel;
+		attribute boolean active;
 	};
-	
 	
 };

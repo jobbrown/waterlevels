@@ -37,84 +37,17 @@ public class SensorGUI extends JFrame {
 	private JLabel lblSensor, lblSensorID;
 	private Timer slideTimer;
 	
-	
+	private static ORB orb = null;
 	
 	public static void main(final String args[]) 
 	{
-		/**
-		 * Register on the name service
-		 */
-		java.awt.EventQueue.invokeLater(new Runnable() {
-			public void run() 
-			{
-				// Make the GUI
-				SensorGUI gui = new SensorGUI(args);
-				
-				// Make the model
-				gui.loadModel(args);
-				
-				// Set any options
-				gui.setSize(200,300);
-				
-				// Finally make it visible
-				gui.setVisible(true);
-			}
-	    });
+		System.out.print("This launch should not be launched directly. Please use SensorLauncher.");
 	}
 
-	protected void loadModel(String[] args) {
-		model = new Sensor(args);
-		model.gui = this;
-		
-		registerWithNameService(args, model);
-	}
-
-	public static void registerWithNameService(String[] args, Sensor sensor)
-	{
-		try {
-			
-			// Initialize the ORB
-		    ORB orb = ORB.init(args, null);
-		    
-		    // get reference to rootpoa & activate the POAManager
-		    POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
-		    rootpoa.the_POAManager().activate();
-		    
-		    org.omg.CORBA.Object ref = rootpoa.servant_to_reference(sensor);
-		    com.jobbrown.sensor.corba.Sensor cref = SensorHelper.narrow(ref);
-		    
-		    // Get a reference to the Naming service
-		    org.omg.CORBA.Object nameServiceObj = orb.resolve_initial_references ("NameService");
-		    if (nameServiceObj == null) {
-		    	System.out.println("nameServiceObj = null");
-		    	return;
-		    }
-		    
-		    // Use NamingContextExt which is part of the Interoperable
-		    // Naming Service (INS) specification.
-		    NamingContextExt nameService = NamingContextExtHelper.narrow(nameServiceObj);
-		    if (nameService == null) {
-				System.out.println("nameService = null");
-				return;
-		    }
-		    
-		    // Bind this object to the naming service
-		    String name = "sensor" + sensor.ID;
-		    NameComponent[] bindName = nameService.to_name(name);
-		    nameService.rebind(bindName, cref);
-		    
-		    //  wait for invocations from clients
-		    //  orb.run();
-			
-		} catch (Exception e) {
-			System.out.println("Caught exception trying to register Sensor with NS");
-			e.printStackTrace();
-		}
-	}
 	/**
 	 * Create the panel.
 	 */
-	public SensorGUI(String[] args) 
+	public SensorGUI() 
 	{		
 		setResizable(true);
 		getContentPane().setLayout(null);
@@ -165,16 +98,20 @@ public class SensorGUI extends JFrame {
 	    slideTimer = new Timer(500, new ActionListener() {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
-	        	model.setWaterLevel(slider.getValue());	
+	        	model.waterLevel(slider.getValue());	
 	        }
 	    });
 	    slideTimer.setRepeats(false);
-
+	    
+	    // Launch it
+	    setSize(200,300);
+	    setVisible(true);
+	    
 	}
 	
 	public void updateGUI()
 	{
-		slider.setValue(model.getWaterLevel());
+		slider.setValue(model.waterLevel());
 		lblSensorID.setText(model.ID + "");
 	}
 }

@@ -2,6 +2,8 @@ package com.jobbrown.lms;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NameComponent;
@@ -16,72 +18,32 @@ import org.omg.PortableServer.POAHelper;
 import com.jobbrown.common.CorbaHelper;
 import com.jobbrown.lms.corba.LMSHelper;
 import com.jobbrown.lms.corba.LMSPOA;
+import com.jobbrown.lms.corba.RMC;
 import com.jobbrown.lms.corba.Sensor;
 import com.jobbrown.lms.corba.SensorHelper;
 
 public class LMS extends LMSPOA 
 {
+	// Reference to the RMC
+	public RMC rmc = null;
+	
+	// The location name of this LMS
+	private String location;
+	
+	// All of the sensors attached to this LMS
 	private HashMap<String, ArrayList<Sensor>> sensors;
-	private HashMap<String, ArrayList<String>> sensorZones;
-	private static String[] arg = null;
 	
-	public static void main(String[] args)
-	{
-		arg = args;
-		try {
-			// Initialize the ORB
-		    ORB orb = ORB.init(args, null);
-		    
-		    // get reference to rootpoa & activate the POAManager
-		    POA rootpoa = POAHelper.narrow(orb.resolve_initial_references("RootPOA"));
-		    rootpoa.the_POAManager().activate();
-		    
-		    LMS lms = new LMS();
-		    
-		    org.omg.CORBA.Object ref = rootpoa.servant_to_reference(lms);
-		    com.jobbrown.lms.corba.LMS cref = LMSHelper.narrow(ref);
-		    
-		    // Get a reference to the Naming service
-		    org.omg.CORBA.Object nameServiceObj = orb.resolve_initial_references ("NameService");
-		    if (nameServiceObj == null) {
-		    	System.out.println("nameServiceObj = null");
-		    	return;
-		    }
-		    
-		    // Use NamingContextExt which is part of the Interoperable
-		    // Naming Service (INS) specification.
-		    NamingContextExt nameService = NamingContextExtHelper.narrow(nameServiceObj);
-		    if (nameService == null) {
-				System.out.println("nameService = null");
-				return;
-		    }
-		    
-		    // Bind this object to the naming service
-		    String name = "lms";
-		    NameComponent[] lmsName = nameService.to_name(name);
-		    nameService.rebind(lmsName, cref);
-		    
-		    System.out.println("Waiting .... ");
-		    
-		    //  wait for invocations from clients
-		    orb.run();
+	// The orb
+	private static ORB orb = null;
 
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-	}
 	
-	public LMS()
+	public LMS(RMC rmc, String location)
 	{
-		sensorZones = new HashMap<String, ArrayList<String>>();
+		// Store the location
+		this.location = location;
 		
-		ArrayList<String> sensors = new ArrayList<String>();
-		sensors.add("sensor1");
-		sensors.add("sensor2");
-		
-		sensorZones.put("zone1", sensors);
-		
+		// Store the RMC
+		this.rmc = rmc;
 	}
 	
 	@Override
@@ -99,19 +61,7 @@ public class LMS extends LMSPOA
 		 */
 		boolean floodConfirmed = true;
 		
-		for(String sensorName : sensorZones.get(zone) ) {
-			Sensor sensor = getSensor(sensorName);
-			
-			if(sensor != null) {
-				if(sensor.isActive()) {
-					if(!sensor.isFlooding()) {
-						floodConfirmed = false;
-						break;
-					}
-				}
-			}
-			
-		}
+		// Loop through each alarm, check its active, check its flooding
 		
 		if(floodConfirmed) {
 			System.out.println("That alarm is confirmed, sending it to RMC");
@@ -122,25 +72,6 @@ public class LMS extends LMSPOA
 		System.out.println("------");
 	}
 	
-	/**
-	 * Get a reference to a sensor
-	 * @param name
-	 * @return
-	 */
-	private Sensor getSensor(String name)
-	{
-		NamingContextExt namingService = CorbaHelper.getNamingService(arg);
-		
-		Sensor sensor = null;
-		try {
-			sensor = SensorHelper.narrow(namingService.resolve_str(name));
-		} catch (Exception e) {
-			System.out.println("Failed to load sensor " + name);
-			e.printStackTrace();
-		}
-		
-		return sensor;
-	}
 	
 	@Override
 	public String getSensorName(int ID) {
@@ -163,5 +94,45 @@ public class LMS extends LMSPOA
 	public boolean getSensorActive(int ID) 
 	{
 		return true;
+	}
+	
+	public void registerSensor(int ID, String zone)
+	{
+		
+	}
+	
+	/** 
+	 * Loop through the sensors and find the sensor by it's ID number
+	 * 
+	 * @param ID
+	 */
+	public Sensor findSensorByID(int ID)
+	{
+		Iterator it = sensors.entrySet().iterator();
+		
+		while(it.hasNext()) 
+		{
+			Map.Entry pair = (Map.Entry) it.next();
+			Sensor sensor = (Sensor) pair.getValue();
+			
+			if(sensor.id() == ID)
+			{
+				return sensor;
+			}
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Register this LMS with the RMC so it knows of its existance
+	 */
+	public void registerWithRMC()
+	{
+		// Register with the RMC
+		this.rmc.registerLMS(this.location);
+		
+		// A little feedback
+		System.out.println("Registered with RMC");
 	}
 }
