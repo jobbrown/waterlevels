@@ -3,10 +3,6 @@ package com.jobbrown.common;
 import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextExtHelper;
-import org.omg.PortableServer.POA;
-import org.omg.PortableServer.POAHelper;
-
-import com.jobbrown.lms.corba.LMSHelper;
 
 public class CorbaHelper 
 {
@@ -37,6 +33,6 @@ public class CorbaHelper
 		}
 		
 		return null;
-	}	
+	}
 	
 }

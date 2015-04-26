@@ -1,14 +1,12 @@
 package com.jobbrown.sensor;
 
-import org.omg.CORBA.ORB;
-import org.omg.CosNaming.NamingContextExt;
-import org.omg.CosNaming.NamingContextPackage.CannotProceed;
-import org.omg.CosNaming.NamingContextPackage.InvalidName;
-import org.omg.CosNaming.NamingContextPackage.NotFound;
+import java.util.ArrayList;
+import java.util.Calendar;
 
-import com.jobbrown.common.CorbaHelper;
+import org.omg.CORBA.ORB;
+
+import com.jobbrown.sensor.corba.DateTime;
 import com.jobbrown.sensor.corba.LMS;
-import com.jobbrown.sensor.corba.LMSHelper;
 import com.jobbrown.sensor.corba.Reading;
 import com.jobbrown.sensor.corba.SensorPOA;
 
@@ -38,28 +36,51 @@ public class Sensor extends SensorPOA
 	// The GUI that this model is displayed on
 	public SensorGUI gui;
 	
+	// The readings of this sensor
+	public Reading[] readings;
+	
 	// An instance of the ORB
 	private static ORB orb = null;
 	
-	public Sensor(LMS lms, int ID)
+	public Sensor(LMS lms, int ID, String name, String zone)
 	{
-		// Set the LMS
 		this.lms = lms;
+		this.ID = ID;
+		this.name = name;
+		this.zone = zone;
 		
-		// Load the settings for this Sensor
-		loadSettings(ID);
+		// I'm sorry - Couldn't find a way to implement ArrayLists so this will do
+		this.readings = new Reading[100];
+	}
+	
+	@Override
+	public DateTime launched() {
+		return null;
+	}
+
+	@Override
+	public void launched(DateTime newLaunched) {
+	}
+
+	@Override
+	public Reading[] readings() {
+		return this.readings;
+	}
+
+	@Override
+	public void readings(Reading[] newReadings) {
+		this.readings = newReadings;
+	}
+	
+	@Override
+	public Reading currentReading() {
+		return this.readings[this.readings.length - 1];
 	}
 
 	@Override
 	public boolean isFlooding() 
 	{
 		return this.active && (this.waterLevel >= this.alarmLevel);
-	}
-
-	@Override
-	public boolean isActive() 
-	{
-		return this.active;
 	}
 	
 	/**
@@ -71,7 +92,7 @@ public class Sensor extends SensorPOA
 		if(isFlooding())
 		{
 			// Raise an alarm
-			this.lms.raiseAlarm(this.zone, this.name);
+			this.lms.raiseAlarm(this.zone, this.ID);
 			this.lms.acceptReading(9999);
 		}
 	}
@@ -84,20 +105,6 @@ public class Sensor extends SensorPOA
 		this.gui.updateGUI();
 	}
 	
-	/**
-	 * Loads the settings from the LMS
-	 * 
-	 * @param ID
-	 */
-	private void loadSettings(int ID)
-	{
-		this.ID = ID;
-		this.name = lms.getSensorName(ID);
-		this.zone = lms.getSensorZone(ID);
-		this.alarmLevel = lms.getSensorAlarmLevel(ID);
-		this.active = lms.getSensorActive(ID);
-	}
-
 	/**
 	 * Get the ID of this sensor
 	 * 
@@ -164,19 +171,32 @@ public class Sensor extends SensorPOA
 
 	@Override
 	public void waterLevel(int newWaterLevel) {
+		// Update the water level on the model
 		this.waterLevel = newWaterLevel;	
 		
-		/*
 		// Create the reading log
 		Reading reading = new Reading();
+		DateTime dt = new DateTime();
 		
-		reading.date = 0;
-		reading.time = 0;
-		reading.waterLevel = waterLevel;
+		Calendar cal = Calendar.getInstance();
+		
+		// Construct a Date Time
+		dt.year = cal.get(Calendar.YEAR);
+		dt.month = cal.get(Calendar.MONTH);
+		dt.day = cal.get(Calendar.DATE);
+		dt.hours = cal.get(Calendar.HOUR_OF_DAY);
+		dt.minutes = cal.get(Calendar.MINUTE);
+		
+		// Add the time, water level and alarm level to the Reading
+		reading.date = dt;
+		reading.waterLevel = newWaterLevel;
 		reading.alarmLevel = this.alarmLevel;
 		
-		this.log[this.log.length] = reading;
-		*/
+		// Add the reading to the log
+		this.readings[this.readings.length] = reading;
+		
+		// A little feedback.
+		System.out.println("Created a new reading with water level: " + newWaterLevel);
 		
 		// Update the GUI, check if we're alarmed
 		this.updateThenCheck();
@@ -232,6 +252,17 @@ public class Sensor extends SensorPOA
 		this.update();
 		this.checkAlarmStatus();
 	}
-	
 
+	public void registerWithLMS() 
+	{
+		// Register with the LMS
+		if(this.lms.registerSensor(this.name)) {
+			System.out.println("Registered with LMS");
+			return;
+		}
+		
+		System.out.println("Failed to register with LMS. Probable name clash.");
+		System.exit(1);
+		
+	}
 }

@@ -12,19 +12,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import org.omg.CORBA.ORB;
-import org.omg.CosNaming.NameComponent;
-import org.omg.CosNaming.NamingContextExt;
-import org.omg.CosNaming.NamingContextExtHelper;
-import org.omg.CosNaming.NamingContextPackage.CannotProceed;
-import org.omg.CosNaming.NamingContextPackage.InvalidName;
-import org.omg.CosNaming.NamingContextPackage.NotFound;
-import org.omg.PortableServer.POA;
-import org.omg.PortableServer.POAHelper;
-
-import com.jobbrown.common.CorbaHelper;
-import com.jobbrown.sensor.corba.LMS;
-import com.jobbrown.sensor.corba.LMSHelper;
-import com.jobbrown.sensor.corba.SensorHelper;
 
 @SuppressWarnings("serial")
 public class SensorGUI extends JFrame {

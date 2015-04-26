@@ -1,6 +1,7 @@
 package com.jobbrown.rmc;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextPackage.CannotProceed;
@@ -14,14 +15,13 @@ import com.jobbrown.rmc.corba.RMCPOA;
 
 public class RMC extends RMCPOA {
 	
-	private ArrayList<String> stationNames = new ArrayList<String>();
-	private ArrayList<LMS> stations = new ArrayList<LMS>();
+	private HashMap<String, LMS> stations = new HashMap<String, LMS>();
 	
 	@Override
-	public void registerLMS(String name) {
-		if(stationNames.contains(name)) {
-			System.out.println("An LMS with that location name is already registered.");
-			return;
+	public boolean registerLMS(String name) {
+		if(stations.containsKey(name)) {
+			System.out.println("A sensor failed to register with name \"" + name + "\" due to a name clash.");
+			return false;
 		}
 		
 		// Get instance of LMS 
@@ -36,11 +36,12 @@ public class RMC extends RMCPOA {
 		}
 		
 		// Add it to the Array
-	    stationNames.add(name);
-		stations.add(lms);
+		stations.put(name, lms);
 		
 		// Give some feedback
 		System.out.println(name + " has registered with the RMC. There are " + stations.size() + " LMS's connected");
+		
+		return true;
 	}
 }
 

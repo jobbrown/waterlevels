@@ -76,7 +76,7 @@ public class SensorLauncher {
 	public static void launch()
 	{
 		// Create the Sensor
-		Sensor sensor = new Sensor(getLMS(), SensorLauncher.id);
+		Sensor sensor = new Sensor(getLMS(), SensorLauncher.id, "sensor" + SensorLauncher.id, SensorLauncher.zone);
 		
 		System.out.println("Creating the GUI");
 		
@@ -98,18 +98,18 @@ public class SensorLauncher {
 		    NamingContextExt nameService = CorbaHelper.getNamingService(SensorLauncher.orb);
 			
 		    // Bind this object to the naming service
-		    NameComponent[] bindName = nameService.to_name("Sensor" + SensorLauncher.id);
+		    NameComponent[] bindName = nameService.to_name("sensor" + SensorLauncher.id);
 		    nameService.rebind(bindName, cref);
 		    
 		    // Output a message
-		    System.out.println("Registered on naming service with name: " + "Sensor" + SensorLauncher.id);
+		    System.out.println("Registered on naming service with name: " + "sensor" + SensorLauncher.id);
 		} catch (Exception e) {
 			System.err.println("Caught error trying to launch Sensor");
 			e.printStackTrace();
 		}
 
 		// Register the Sensor with the LMS
-		
+		sensor.registerWithLMS();
 		
 	}
 	
