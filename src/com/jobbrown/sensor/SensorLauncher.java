@@ -85,6 +85,10 @@ public class SensorLauncher {
 		
 		// Give the Sensor some settings
 		sensor.gui = sGUI;
+		sGUI.model = sensor;
+		
+		// Update it
+		sGUI.updateGUI();
 		
 		// Register the Sensor on the NS
 		try {

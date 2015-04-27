@@ -1,21 +1,16 @@
 module Sensor {
-	struct DateTime {
-		long year;
-		long month;
-		long day;
-		long hours;
-		long minutes;
-	};
-	
+
 	struct Reading {
-		DateTime date;
+		string date;
 		long waterLevel;
 		long alarmLevel;
 	};
 	
 	typedef sequence<Reading> Readings;
-
+	typedef sequence<string> Log;
+	
 	interface Sensor {
+		Log getLog();
 		Reading currentReading();
 		boolean isFlooding();
 		void checkAlarmStatus();
@@ -26,7 +21,6 @@ module Sensor {
 		attribute long waterLevel;
 		attribute long alarmLevel;
 		attribute boolean active;
-		attribute DateTime launched;
 		attribute Readings readings;
 	};
 	

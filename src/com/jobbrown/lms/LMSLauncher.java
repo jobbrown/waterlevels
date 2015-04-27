@@ -84,7 +84,7 @@ public class LMSLauncher {
 		    nameService.rebind(bindName, cref);
 		    
 		    //  wait for invocations from clients
-		    System.out.println("Launched LMS. Waiting ...");
+		    lms.log("Launched LMS. Waiting ...");
 		    
 		    
 			// orb.run();

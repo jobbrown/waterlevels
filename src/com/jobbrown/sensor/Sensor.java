@@ -1,7 +1,11 @@
 package com.jobbrown.sensor;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Date;
 
 import org.omg.CORBA.ORB;
 
@@ -28,7 +32,7 @@ public class Sensor extends SensorPOA
 	public int alarmLevel = 70;
 	
 	// The current water level
-	public int waterLevel = 50;
+	public int waterLevel = 0;
 	
 	// Whether or not this sensor is active
 	public Boolean active = true;
@@ -37,10 +41,10 @@ public class Sensor extends SensorPOA
 	public SensorGUI gui;
 	
 	// The readings of this sensor
-	public Reading[] readings;
+	public ArrayList<Reading> readings;
 	
-	// An instance of the ORB
-	private static ORB orb = null;
+	// Log
+	public ArrayList<String> log;
 	
 	public Sensor(LMS lms, int ID, String name, String zone)
 	{
@@ -49,32 +53,23 @@ public class Sensor extends SensorPOA
 		this.name = name;
 		this.zone = zone;
 		
-		// I'm sorry - Couldn't find a way to implement ArrayLists so this will do
-		this.readings = new Reading[100];
+		// Couldn't find a way to implement ArrayLists so this will do
+		this.readings = new ArrayList<Reading>();
 	}
 	
 	@Override
-	public DateTime launched() {
-		return null;
-	}
-
-	@Override
-	public void launched(DateTime newLaunched) {
-	}
-
-	@Override
 	public Reading[] readings() {
-		return this.readings;
+		return (Reading[]) this.readings.toArray();
 	}
 
 	@Override
 	public void readings(Reading[] newReadings) {
-		this.readings = newReadings;
+		this.readings = new ArrayList<Reading>(Arrays.asList(newReadings));
 	}
 	
 	@Override
 	public Reading currentReading() {
-		return this.readings[this.readings.length - 1];
+		return this.readings.get( this.readings.size() - 1 );
 	}
 
 	@Override
@@ -93,7 +88,6 @@ public class Sensor extends SensorPOA
 		{
 			// Raise an alarm
 			this.lms.raiseAlarm(this.zone, this.ID);
-			this.lms.acceptReading(9999);
 		}
 	}
 	
@@ -176,27 +170,21 @@ public class Sensor extends SensorPOA
 		
 		// Create the reading log
 		Reading reading = new Reading();
-		DateTime dt = new DateTime();
-		
-		Calendar cal = Calendar.getInstance();
 		
 		// Construct a Date Time
-		dt.year = cal.get(Calendar.YEAR);
-		dt.month = cal.get(Calendar.MONTH);
-		dt.day = cal.get(Calendar.DATE);
-		dt.hours = cal.get(Calendar.HOUR_OF_DAY);
-		dt.minutes = cal.get(Calendar.MINUTE);
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		Date date = new Date();
 		
 		// Add the time, water level and alarm level to the Reading
-		reading.date = dt;
+		reading.date = dateFormat.format(date);
 		reading.waterLevel = newWaterLevel;
 		reading.alarmLevel = this.alarmLevel;
 		
 		// Add the reading to the log
-		this.readings[this.readings.length] = reading;
+		this.readings.add(reading);
 		
 		// A little feedback.
-		System.out.println("Created a new reading with water level: " + newWaterLevel);
+		this.log("Created a new reading with water level: " + newWaterLevel);
 		
 		// Update the GUI, check if we're alarmed
 		this.updateThenCheck();
@@ -253,16 +241,47 @@ public class Sensor extends SensorPOA
 		this.checkAlarmStatus();
 	}
 
+	
 	public void registerWithLMS() 
 	{
 		// Register with the LMS
 		if(this.lms.registerSensor(this.name)) {
-			System.out.println("Registered with LMS");
+			this.log("Registered with LMS");
 			return;
 		}
 		
-		System.out.println("Failed to register with LMS. Probable name clash.");
+		this.log("Failed to register with LMS. Probable name clash.");
 		System.exit(1);
+	}
+	
+	/**
+	 * Get this sensors log
+	 */
+	@Override
+	public String[] getLog() {
+		return (String[]) this.log.toArray();
+	}
+	
+	/**
+	 * Add a string to the log for this LMS. Prefixes the 
+	 * @param str
+	 */
+	private void log(String str)
+	{
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		Date date = new Date();
 		
+		String loggable = "";
+		try {
+			loggable = dateFormat.parse(date.toString()) + ": " + str;
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		
+		// Add it to the log
+		this.log.add(loggable);
+		
+		// Print it out, for now.
+		System.out.println(loggable); 
 	}
 }

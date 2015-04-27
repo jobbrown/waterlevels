@@ -9,13 +9,40 @@ import org.omg.CosNaming.NamingContextPackage.InvalidName;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 import com.jobbrown.common.CorbaHelper;
+import com.jobbrown.rmc.corba.Alarm;
 import com.jobbrown.rmc.corba.LMSHelper;
 import com.jobbrown.rmc.corba.LMS;
 import com.jobbrown.rmc.corba.RMCPOA;
+import com.jobbrown.rmc.corba.Reading;
 
 public class RMC extends RMCPOA {
 	
-	private HashMap<String, LMS> stations = new HashMap<String, LMS>();
+	public HashMap<String, LMS> stations = new HashMap<String, LMS>();
+	public ArrayList<Alarm> alarms = new ArrayList<Alarm>();
+	
+	public RMCGUI gui = null;
+	
+	/**
+	 * Updates the GUI with new values
+	 */
+	public void update()
+	{
+		this.gui.updateGUI();
+	}
+
+	@Override
+	public void raiseAlarm(int sensorID, Reading reading) {
+		Alarm alarm = new Alarm();
+		
+		alarm.reading = reading;
+		alarm.sensorID = sensorID;
+		
+		this.alarms.add(alarm);
+		
+		System.out.println("An alarm was raised");
+		
+		this.update();
+	}
 	
 	@Override
 	public boolean registerLMS(String name) {
@@ -40,6 +67,9 @@ public class RMC extends RMCPOA {
 		
 		// Give some feedback
 		System.out.println(name + " has registered with the RMC. There are " + stations.size() + " LMS's connected");
+		
+		// Update everything
+		this.update();
 		
 		return true;
 	}

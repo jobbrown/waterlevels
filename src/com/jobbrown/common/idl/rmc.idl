@@ -1,6 +1,18 @@
 module RMC {	
-
+		
+	struct Reading {
+		string date;
+		long waterLevel;
+		long alarmLevel;
+	};
+	
+	struct Alarm {
+		Reading reading;
+		long sensorID;
+	};
+	
 	interface RMC {
 		boolean registerLMS(in string name);
+		void raiseAlarm(in long sensorID, in Reading reading);
 	};	
 };

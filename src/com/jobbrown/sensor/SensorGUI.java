@@ -18,7 +18,7 @@ public class SensorGUI extends JFrame {
 	/**
 	 * The Sensor model that this gui is representing
 	 */
-	private Sensor model;
+	public Sensor model;
 	
 	private JSlider slider;
 	private JLabel lblSensor, lblSensorID;

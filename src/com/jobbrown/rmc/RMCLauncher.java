@@ -49,6 +49,16 @@ public class RMCLauncher {
 		// Create RMC
 		RMC rmc = new RMC();
 		
+		// Create GUI
+		RMCGUI rGUI = new RMCGUI();
+		
+		// Pass some references around
+		rmc.gui = rGUI;
+		rGUI.model = rmc;
+		
+		// Preload everything
+		rGUI.updateGUI();
+		
 		// Register on NS
 		try {
 			// get reference to rootpoa & activate the POAManager
@@ -69,13 +79,10 @@ public class RMCLauncher {
 		    System.out.println("Launched RMC - Waiting ...");
 		    
 		    // This will need commenting out when we add the GUI
-			orb.run();
+			//orb.run();
 		} catch (Exception e) {
 			System.err.println("Caught error trying to launch RMC");
 			e.printStackTrace();
 		}
-	    
-		// Create GUI
-		// This happens later
 	}
 }

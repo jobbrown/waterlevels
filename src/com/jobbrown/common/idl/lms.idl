@@ -1,23 +1,9 @@
 module LMS {
-	struct DateTime {
-		long year;
-		long month;
-		long day;
-		long hours;
-		long minutes;
-	};
-	
-	struct Reading {
-		DateTime date;
-		long waterLevel;
-		long alarmLevel;
-	};
-	
-	typedef sequence<Reading> Readings;
+	typedef sequence<string> Log;
 	
 	interface LMS {
 		boolean registerSensor(in string name);
-		
 		void raiseAlarm(in string zone, in long raisingSensorID);
+		Log getLog();
 	};
 };

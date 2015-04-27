@@ -1,6 +1,9 @@
 package com.jobbrown.lms;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -15,6 +18,7 @@ import org.omg.CosNaming.NamingContextPackage.NotFound;
 import com.jobbrown.common.CorbaHelper;
 import com.jobbrown.lms.corba.LMSPOA;
 import com.jobbrown.lms.corba.RMC;
+import com.jobbrown.lms.corba.Reading;
 import com.jobbrown.lms.corba.Sensor;
 import com.jobbrown.lms.corba.SensorHelper;
 
@@ -29,8 +33,8 @@ public class LMS extends LMSPOA
 	// All of the sensors attached to this LMS
 	private HashMap<String, ArrayList<Sensor>> sensors;
 	
-	// The orb
-	private static ORB orb = null;
+	// This LMS's log
+	private ArrayList<String> log; 
 
 	/**
 	 * LMS Constructor
@@ -42,27 +46,34 @@ public class LMS extends LMSPOA
 	{
 		this.rmc = rmc;
 		this.location = location;
-		this.sensors = new HashMap<String, ArrayList<Sensor>>();		
+		this.sensors = new HashMap<String, ArrayList<Sensor>>();	
+		this.log = new ArrayList<String>();
+	
+		this.log("Loaded LMS");
 	}
 	
+	/**
+	 * Allow a Sensor to raise an alarm with this LMS
+	 * 
+	 * @param String zone the zone that the sensor is in
+	 * @param int raisingSensorID  the ID of the sensor
+	 */
 	@Override
-	public void acceptReading(int reading) {
-		System.out.println("Reading received" + reading);
-	}
-	
-	@Override
-	public void raiseAlarm(String zone, String raisingSensorName)
+	public void raiseAlarm(String zone, int raisingSensorID)
 	{
-		System.out.println(raisingSensorName + " just raised an alarm for zone " + zone);
+		// Get the instance of the Sensor and the raising reading
+		Sensor raisingSensor = findSensorByID(raisingSensorID);
+		Reading raisingReading = raisingSensor.currentReading();
+		
+		// A little feedback
+		this.log(raisingSensor.name() + " just raised an alarm for zone " + zone);
 		
 		if( ! sensors.containsKey(zone)) {
-			System.out.println("Invalid zone passed. Ignoring alarm");
+			this.log("Invalid zone given. Ignoring alarm.");
 			return;
 		}
 		
-		/**
-		 * For an alarm to be raised, all active sensors should be alarmed
-		 */
+		// For an alarm to be raised, all active sensors in the zone should be alarmed
 		boolean floodConfirmed = true;
 		
 		for(Sensor sensor : sensors.get(zone)) {
@@ -74,12 +85,11 @@ public class LMS extends LMSPOA
 		}
 		
 		if(floodConfirmed) {
-			System.out.println("That alarm is confirmed, sending it to RMC");
+			this.log("That alarm is confirmed, sending it to RMC");
+			this.rmc.raiseAlarm(raisingSensor.id(), raisingReading);
 		} else {
-			System.out.println("That alarm is not confirmed. Logging, but not raising an alert");
+			this.log("That alarm is not confirmed. Logging, but not raising an alert");
 		}
-		
-		System.out.println("------");
 	}
 	
 	
@@ -94,14 +104,16 @@ public class LMS extends LMSPOA
 		
 		while(it.hasNext()) 
 		{
-			@SuppressWarnings("rawtypes")
 			Map.Entry pair = (Map.Entry) it.next();
-			Sensor sensor = (Sensor) pair.getValue();
+			ArrayList<Sensor> sensors = (ArrayList<Sensor>) pair.getValue();
 			
-			if(sensor.id() == ID)
-			{
-				return sensor;
+			for(Sensor sensor : sensors) {
+				if(sensor.id() == ID)
+				{
+					return sensor;
+				}
 			}
+			
 		}
 		
 		return null;
@@ -114,11 +126,11 @@ public class LMS extends LMSPOA
 	{
 		// Register with the RMC
 		if(this.rmc.registerLMS(this.location)) {
-			System.out.println("Registered with RMC");
+			this.log("Registered with RMC");
 			return;
 		}
 		
-		System.out.println("Failed to register with RMC. Probable name clash.");
+		this.log("Failed to register with RMC. Probable name clash.");
 		System.exit(1);
 	}
 
@@ -153,15 +165,42 @@ public class LMS extends LMSPOA
 		    	this.sensors.get(sensor.zone()).add(sensor);
 		    	
 		    	// A little feedback
-		    	System.out.println(name + " has registered with the LMS in zone " + sensor.zone() + ". There are " + this.sensors.get(sensor.zone()).size() + " Sensors in this Zone.");
+		    	this.log(name + " has registered with the LMS in zone " + sensor.zone() + ". There are " + this.sensors.get(sensor.zone()).size() + " Sensors in this Zone.");
 		    	
 		    	return true;
 		    }
 	    } else {
-	    	System.out.println("Returned Sensor was null");
+	    	this.log("Returned Sensor was null");
 	    }
 	    
 		// At this stage, the sensor must exist already
 		return false;
 	}
+
+	/**
+	 * Get this sensors log
+	 */
+	@Override
+	public String[] getLog() {
+		return (String[]) this.log.toArray();
+	}
+	
+	/**
+	 * Add a string to the log for this LMS. Prefixes the 
+	 * @param str
+	 */
+	public void log(String str)
+	{
+		Date date = new Date();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
+		
+		String loggable = dateFormat.format(date) + ": " + str;
+		
+		// Add it to the log
+		this.log.add(loggable);
+		
+		// Print it out, for now.
+		System.out.println(loggable); 
+	}
+	
 }
