@@ -7,16 +7,22 @@ import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JTabbedPane;
+
 import java.awt.Panel;
+
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JTextArea;
+
+import com.jobbrown.lms.LMS;
+import com.jobbrown.common.waterlevels.*;
 
 public class RMCGUI extends JFrame {
 
 	public RMC model;
 	
 	private JLabel lblConnections;
-	
+	private JTextArea alarms;
 	
 	/**
 	 * Launch the application.
@@ -55,10 +61,18 @@ public class RMCGUI extends JFrame {
 		Panel logsPanel = new Panel();
 		tabbedPane.addTab("Recent Alarms", null, logsPanel, null);
 		
+		alarms = new JTextArea();
+		
+		alarms.setColumns(70);
+		alarms.setText("Alarms will be displayed here");
+		alarms.setRows(18);
+		
+		logsPanel.add(alarms);
+		
 		Panel lmsPanel = new Panel();
 		tabbedPane.addTab("View LMS", null, lmsPanel, null);
 		
-		JComboBox comboBox = new JComboBox();
+		JComboBox<LMS> comboBox = new JComboBox<LMS>();
 		lmsPanel.add(comboBox);
 		
 		Panel usersPanel = new Panel();
@@ -82,11 +96,28 @@ public class RMCGUI extends JFrame {
 		/**
 		 * Update Recent Alarms Tab
 		 */
+		for(Alarm alarm : this.model.alarms) {
+			
+			int sensorID = alarm.sensorID;
+			String sensorZone = alarm.zone;
+			String lms = alarm.lms;
+			
+			com.jobbrown.common.waterlevels.LMS raisingLMS = this.model.stations.get(lms);
+			
+			Sensor raisingSensor = (Sensor) raisingLMS.findSensorByID(sensorID);
+			
+			String text = alarm.reading.date + ": " + raisingSensor.name() + " in zone " + sensorZone + "\n";
+			
+			alarms.setText(text + alarms.getText());
+			//alarms.setText(alarm.reading.date + ": " + this.model.getSensorByID(alarm.sensorID). + "\n" + alarms.getText());
+		}
+		
 		
 		/**
 		 * Update 'View LMS' Tab
 		 * 
 		 */
+		
 		
 		/**
 		 * Update 'Manage Users' Tab

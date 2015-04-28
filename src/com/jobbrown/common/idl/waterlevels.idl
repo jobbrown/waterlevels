@@ -1,0 +1,46 @@
+module WaterLevels {
+	
+	struct Reading {
+		string date;
+		long waterLevel;
+		long alarmLevel;
+	};
+	
+	struct Alarm {
+		Reading reading;
+		long sensorID;
+		string lms;
+		string zone;
+	};
+	
+	typedef sequence<string> Log;	
+	typedef sequence<Reading> Readings;
+	
+	interface RMC {
+		boolean registerLMS(in string name);
+		void raiseAlarm(in long sensorID, in string zone, in string lms, in Reading reading);
+	};
+	
+	interface Sensor {
+		Log getLog();
+		Reading currentReading();
+		boolean isFlooding();
+		void checkAlarmStatus();
+		
+		attribute long id;
+		attribute string name;
+		attribute string zone;
+		attribute long waterLevel;
+		attribute long alarmLevel;
+		attribute boolean active;
+		attribute Readings readings;
+	};
+	
+	interface LMS {
+		Sensor findSensorByID(in long id);
+		boolean registerSensor(in string name);
+		void raiseAlarm(in long raisingSensorID, in string zone);
+		Log getLog();
+	};
+	
+};

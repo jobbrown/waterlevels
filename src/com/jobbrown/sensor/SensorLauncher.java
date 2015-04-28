@@ -6,6 +6,7 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.omg.CORBA.ORB;
+import org.omg.CORBA.Object;
 import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextPackage.CannotProceed;
@@ -16,11 +17,7 @@ import org.omg.PortableServer.POAHelper;
 
 import com.jobbrown.common.CorbaHelper;
 import com.jobbrown.lms.LMSLauncher;
-import com.jobbrown.lms.corba.RMC;
-import com.jobbrown.lms.corba.RMCHelper;
-import com.jobbrown.sensor.corba.LMS;
-import com.jobbrown.sensor.corba.LMSHelper;
-import com.jobbrown.sensor.corba.SensorHelper;
+import com.jobbrown.common.waterlevels.*;
 
 public class SensorLauncher {
 	private static ORB orb = null;
@@ -78,7 +75,7 @@ public class SensorLauncher {
 		// Create the Sensor
 		Sensor sensor = new Sensor(getLMS(), SensorLauncher.id, "sensor" + SensorLauncher.id, SensorLauncher.zone);
 		
-		System.out.println("Creating the GUI");
+		sensor.log("Creating the GUI");
 		
 		// Create the Sensor GUI
 		SensorGUI sGUI = new SensorGUI();
@@ -97,18 +94,18 @@ public class SensorLauncher {
 		    rootpoa.the_POAManager().activate();
 		    
 		    org.omg.CORBA.Object ref = rootpoa.servant_to_reference(sensor);
-		    com.jobbrown.sensor.corba.Sensor cref = SensorHelper.narrow(ref);
+		    com.jobbrown.common.waterlevels.Sensor cref = SensorHelper.narrow(ref);
 		    
 		    NamingContextExt nameService = CorbaHelper.getNamingService(SensorLauncher.orb);
 			
 		    // Bind this object to the naming service
 		    NameComponent[] bindName = nameService.to_name("sensor" + SensorLauncher.id);
-		    nameService.rebind(bindName, cref);
+		    nameService.rebind(bindName, (Object) cref);
 		    
 		    // Output a message
-		    System.out.println("Registered on naming service with name: " + "sensor" + SensorLauncher.id);
+		    sensor.log("Registered on naming service with name: " + "sensor" + SensorLauncher.id);
 		} catch (Exception e) {
-			System.err.println("Caught error trying to launch Sensor");
+			sensor.log("Caught error trying to launch Sensor");
 			e.printStackTrace();
 		}
 

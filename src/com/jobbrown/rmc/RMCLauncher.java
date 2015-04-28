@@ -6,13 +6,14 @@ import org.apache.commons.cli.GnuParser;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.omg.CORBA.ORB;
+import org.omg.CORBA.Object;
 import org.omg.CosNaming.NameComponent;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.PortableServer.POA;
 import org.omg.PortableServer.POAHelper;
 
 import com.jobbrown.common.CorbaHelper;
-import com.jobbrown.rmc.corba.RMCHelper;
+import com.jobbrown.common.waterlevels.*;
 
 public class RMCLauncher {
 	private static ORB orb = null;
@@ -66,14 +67,14 @@ public class RMCLauncher {
 		    rootpoa.the_POAManager().activate();
 		    
 		    org.omg.CORBA.Object ref = rootpoa.servant_to_reference(rmc);
-		    com.jobbrown.rmc.corba.RMC cref = RMCHelper.narrow(ref);
+		    com.jobbrown.common.waterlevels.RMC cref = RMCHelper.narrow(ref);
 		    
 		    NamingContextExt nameService = CorbaHelper.getNamingService(orb);
 			
 		    // Bind this object to the naming service
 		    String name = "rmc";
 		    NameComponent[] bindName = nameService.to_name(name);
-		    nameService.rebind(bindName, cref);
+		    nameService.rebind(bindName, (Object) cref);
 		    
 		    //  wait for invocations from clients
 		    System.out.println("Launched RMC - Waiting ...");

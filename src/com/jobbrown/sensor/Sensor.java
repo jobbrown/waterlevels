@@ -9,10 +9,7 @@ import java.util.Date;
 
 import org.omg.CORBA.ORB;
 
-import com.jobbrown.sensor.corba.DateTime;
-import com.jobbrown.sensor.corba.LMS;
-import com.jobbrown.sensor.corba.Reading;
-import com.jobbrown.sensor.corba.SensorPOA;
+import com.jobbrown.common.waterlevels.*;
 
 public class Sensor extends SensorPOA 
 {
@@ -55,6 +52,8 @@ public class Sensor extends SensorPOA
 		
 		// Couldn't find a way to implement ArrayLists so this will do
 		this.readings = new ArrayList<Reading>();
+		
+		this.log = new ArrayList<String>();
 	}
 	
 	@Override
@@ -87,7 +86,7 @@ public class Sensor extends SensorPOA
 		if(isFlooding())
 		{
 			// Raise an alarm
-			this.lms.raiseAlarm(this.zone, this.ID);
+			this.lms.raiseAlarm(this.ID, this.zone);
 		}
 	}
 	
@@ -172,7 +171,7 @@ public class Sensor extends SensorPOA
 		Reading reading = new Reading();
 		
 		// Construct a Date Time
-		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
+		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 		Date date = new Date();
 		
 		// Add the time, water level and alarm level to the Reading
@@ -266,17 +265,12 @@ public class Sensor extends SensorPOA
 	 * Add a string to the log for this LMS. Prefixes the 
 	 * @param str
 	 */
-	private void log(String str)
+	public void log(String str)
 	{
-		SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy");
 		Date date = new Date();
+		SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm");
 		
-		String loggable = "";
-		try {
-			loggable = dateFormat.parse(date.toString()) + ": " + str;
-		} catch (ParseException e) {
-			e.printStackTrace();
-		}
+		String loggable = dateFormat.format(date) + ": " + str;
 		
 		// Add it to the log
 		this.log.add(loggable);

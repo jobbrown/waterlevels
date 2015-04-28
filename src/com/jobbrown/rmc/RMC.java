@@ -9,11 +9,7 @@ import org.omg.CosNaming.NamingContextPackage.InvalidName;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 import com.jobbrown.common.CorbaHelper;
-import com.jobbrown.rmc.corba.Alarm;
-import com.jobbrown.rmc.corba.LMSHelper;
-import com.jobbrown.rmc.corba.LMS;
-import com.jobbrown.rmc.corba.RMCPOA;
-import com.jobbrown.rmc.corba.Reading;
+import com.jobbrown.common.waterlevels.*;
 
 public class RMC extends RMCPOA {
 	
@@ -31,11 +27,13 @@ public class RMC extends RMCPOA {
 	}
 
 	@Override
-	public void raiseAlarm(int sensorID, Reading reading) {
+	public void raiseAlarm(int sensorID, String zone, String location, Reading reading) {
 		Alarm alarm = new Alarm();
 		
-		alarm.reading = reading;
 		alarm.sensorID = sensorID;
+		alarm.zone = zone;
+		alarm.reading = reading;
+		alarm.lms = location;
 		
 		this.alarms.add(alarm);
 		

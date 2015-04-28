@@ -28,7 +28,7 @@ public class SensorGUI extends JFrame {
 	
 	public static void main(final String args[]) 
 	{
-		System.out.print("This launch should not be launched directly. Please use SensorLauncher.");
+		System.out.print("This file should not be launched directly. Please use SensorLauncher.");
 	}
 
 	/**

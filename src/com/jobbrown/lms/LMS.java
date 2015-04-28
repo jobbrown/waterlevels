@@ -16,11 +16,7 @@ import org.omg.CosNaming.NamingContextPackage.InvalidName;
 import org.omg.CosNaming.NamingContextPackage.NotFound;
 
 import com.jobbrown.common.CorbaHelper;
-import com.jobbrown.lms.corba.LMSPOA;
-import com.jobbrown.lms.corba.RMC;
-import com.jobbrown.lms.corba.Reading;
-import com.jobbrown.lms.corba.Sensor;
-import com.jobbrown.lms.corba.SensorHelper;
+import com.jobbrown.common.waterlevels.*;
 
 public class LMS extends LMSPOA 
 {
@@ -59,7 +55,7 @@ public class LMS extends LMSPOA
 	 * @param int raisingSensorID  the ID of the sensor
 	 */
 	@Override
-	public void raiseAlarm(String zone, int raisingSensorID)
+	public void raiseAlarm(int raisingSensorID, String zone)
 	{
 		// Get the instance of the Sensor and the raising reading
 		Sensor raisingSensor = findSensorByID(raisingSensorID);
@@ -86,7 +82,7 @@ public class LMS extends LMSPOA
 		
 		if(floodConfirmed) {
 			this.log("That alarm is confirmed, sending it to RMC");
-			this.rmc.raiseAlarm(raisingSensor.id(), raisingReading);
+			this.rmc.raiseAlarm(raisingSensor.id(), raisingSensor.zone(), this.location, raisingReading);
 		} else {
 			this.log("That alarm is not confirmed. Logging, but not raising an alert");
 		}
@@ -201,6 +197,13 @@ public class LMS extends LMSPOA
 		
 		// Print it out, for now.
 		System.out.println(loggable); 
+	}
+	
+	/**
+	 * To string method for displaying it in a dropdown at RMC
+	 */
+	public String toString() {
+		return this.location;
 	}
 	
 }
