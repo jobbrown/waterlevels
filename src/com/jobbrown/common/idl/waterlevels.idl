@@ -13,8 +13,11 @@ module WaterLevels {
 		string zone;
 	};
 	
+	interface Sensor;	// Forward declaration
+	
 	typedef sequence<string> Log;	
 	typedef sequence<Reading> Readings;
+	typedef sequence<Sensor> Sensors;
 	
 	interface RMC {
 		boolean registerLMS(in string name);
@@ -37,10 +40,13 @@ module WaterLevels {
 	};
 	
 	interface LMS {
+		string getLocation();
+		Log getLog();
+		Sensors getAllSensors();
 		Sensor findSensorByID(in long id);
 		boolean registerSensor(in string name);
 		void raiseAlarm(in long raisingSensorID, in string zone);
-		Log getLog();
+		
 	};
 	
 };

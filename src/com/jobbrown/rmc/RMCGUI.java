@@ -9,12 +9,17 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.JTabbedPane;
 
 import java.awt.Panel;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.util.Map.Entry;
 
+import javax.swing.ComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 
 import com.jobbrown.lms.LMS;
+import com.jobbrown.rmc.partials.ViewLMSPanel;
 import com.jobbrown.common.waterlevels.*;
 
 public class RMCGUI extends JFrame {
@@ -23,6 +28,8 @@ public class RMCGUI extends JFrame {
 	
 	private JLabel lblConnections;
 	private JTextArea alarms;
+	private JComboBox<String> comboBox;
+	private ViewLMSPanel viewLMSPanel;
 	
 	/**
 	 * Launch the application.
@@ -71,9 +78,25 @@ public class RMCGUI extends JFrame {
 		
 		Panel lmsPanel = new Panel();
 		tabbedPane.addTab("View LMS", null, lmsPanel, null);
+		lmsPanel.setLayout(null);
 		
-		JComboBox<LMS> comboBox = new JComboBox<LMS>();
+		comboBox = new JComboBox<String>();
+		comboBox.setBounds(20, 6, 303, 27);
+		
+		comboBox.addActionListener( new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				lmsChanged((String) comboBox.getSelectedItem());
+			}
+			
+		});
+		
 		lmsPanel.add(comboBox);
+		
+		viewLMSPanel = new ViewLMSPanel();
+		viewLMSPanel.setBounds(30, 45, 846, 247);
+		lmsPanel.add(viewLMSPanel);
 		
 		Panel usersPanel = new Panel();
 		tabbedPane.addTab("Manage Users", null, usersPanel, null);
@@ -118,6 +141,17 @@ public class RMCGUI extends JFrame {
 		 * 
 		 */
 		
+		// Empty the Dropdown
+		comboBox.removeAllItems();
+		comboBox.addItem("");
+		comboBox.setSelectedItem("");
+		
+		// Rebuild the array then add it
+		for(Entry<String, com.jobbrown.common.waterlevels.LMS> stationPair : this.model.stations.entrySet()) {
+			comboBox.addItem(stationPair.getValue().getLocation());
+		}
+		
+		
 		
 		/**
 		 * Update 'Manage Users' Tab
@@ -128,4 +162,8 @@ public class RMCGUI extends JFrame {
 		 */
 	}
 
+	public void lmsChanged(String lmsName)
+	{
+		viewLMSPanel.loadLMS(this.model.stations.get(lmsName));
+	}
 }

@@ -198,12 +198,26 @@ public class LMS extends LMSPOA
 		// Print it out, for now.
 		System.out.println(loggable); 
 	}
-	
-	/**
-	 * To string method for displaying it in a dropdown at RMC
-	 */
-	public String toString() {
+
+	@Override
+	public String getLocation() {
 		return this.location;
+	}
+
+	/**
+	 * Get an array of all the sensors in this LMS
+	 */
+	@Override
+	public Sensor[] getAllSensors() {
+		ArrayList<Sensor> sensorArray = new ArrayList<Sensor>();
+		
+		for(Entry<String, ArrayList<Sensor>> entry : this.sensors.entrySet()) {
+			for(Sensor thisSensor : entry.getValue()) {
+				sensorArray.add(thisSensor);
+			}
+		}
+		
+		return (Sensor[]) sensorArray.toArray();
 	}
 	
 }

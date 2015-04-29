@@ -65,7 +65,7 @@ public class LMSLauncher {
 	{
 		// Create RMC
 		LMS lms = new LMS(getRMC(), LMSLauncher.location);
-		
+		System.out.println("Launched as: " + lms.toString());
 		// Register on NS
 		try {
 			// get reference to rootpoa & activate the POAManager
