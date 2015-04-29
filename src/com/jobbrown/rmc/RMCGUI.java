@@ -21,6 +21,7 @@ import javax.swing.JTextArea;
 import com.jobbrown.lms.LMS;
 import com.jobbrown.rmc.partials.ViewLMSPanel;
 import com.jobbrown.common.waterlevels.*;
+import javax.swing.JButton;
 
 public class RMCGUI extends JFrame {
 
@@ -52,11 +53,11 @@ public class RMCGUI extends JFrame {
 	 */
 	public RMCGUI() {
 		setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-		setBounds(100, 100, 909, 383);
+		setBounds(100, 100, 909, 610);
 		getContentPane().setLayout(null);
 		
 		JTabbedPane tabbedPane = new JTabbedPane(JTabbedPane.TOP);
-		tabbedPane.setBounds(0, 0, 903, 355);
+		tabbedPane.setBounds(0, 0, 903, 582);
 		getContentPane().add(tabbedPane);
 		
 		Panel systemPanel = new Panel();
@@ -75,6 +76,18 @@ public class RMCGUI extends JFrame {
 		alarms.setRows(18);
 		
 		logsPanel.add(alarms);
+		
+		JButton btnRefresh = new JButton("Refresh");
+		
+		btnRefresh.addActionListener(new ActionListener() {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				updateGUI();
+			}
+			
+		});
+		logsPanel.add(btnRefresh);
 		
 		Panel lmsPanel = new Panel();
 		tabbedPane.addTab("View LMS", null, lmsPanel, null);
@@ -95,7 +108,7 @@ public class RMCGUI extends JFrame {
 		lmsPanel.add(comboBox);
 		
 		viewLMSPanel = new ViewLMSPanel();
-		viewLMSPanel.setBounds(30, 45, 846, 247);
+		viewLMSPanel.setBounds(30, 45, 846, 472);
 		lmsPanel.add(viewLMSPanel);
 		
 		Panel usersPanel = new Panel();

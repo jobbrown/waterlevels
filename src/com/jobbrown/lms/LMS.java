@@ -1,6 +1,5 @@
 package com.jobbrown.lms;
 
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -9,7 +8,6 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import org.omg.CORBA.ORB;
 import org.omg.CosNaming.NamingContextExt;
 import org.omg.CosNaming.NamingContextPackage.CannotProceed;
 import org.omg.CosNaming.NamingContextPackage.InvalidName;
@@ -178,7 +176,8 @@ public class LMS extends LMSPOA
 	 */
 	@Override
 	public String[] getLog() {
-		return (String[]) this.log.toArray();
+		String[] logs = new String[this.log.size()];
+		return this.log.toArray(logs);
 	}
 	
 	/**
@@ -208,7 +207,7 @@ public class LMS extends LMSPOA
 	 * Get an array of all the sensors in this LMS
 	 */
 	@Override
-	public Sensor[] getAllSensors() {
+	public Sensor[] getAllSensors() {	
 		ArrayList<Sensor> sensorArray = new ArrayList<Sensor>();
 		
 		for(Entry<String, ArrayList<Sensor>> entry : this.sensors.entrySet()) {
@@ -217,7 +216,19 @@ public class LMS extends LMSPOA
 			}
 		}
 		
-		return (Sensor[]) sensorArray.toArray();
+		// ArrayList.toArray() didn't want to play ball.
+		Sensor[] sensorRealArray = new Sensor[sensorArray.size()];
+		
+		return sensorArray.toArray(sensorRealArray);
+		/*
+		int i = 0;
+		for(Sensor sen : sensorArray) {
+			sensorRealArray[i] = sen;
+			i++;
+		}
+		
+		return sensorRealArray;
+		*/
 	}
 	
 }

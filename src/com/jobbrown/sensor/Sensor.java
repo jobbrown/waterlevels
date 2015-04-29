@@ -204,6 +204,9 @@ public class Sensor extends SensorPOA
 	 */
 	@Override
 	public void alarmLevel(int newAlarmLevel) {
+		// Log it
+		this.log("Alarm level changed to: " + newAlarmLevel);
+		
 		this.alarmLevel = newAlarmLevel;
 		
 		// Update the GUI, then check if we're alarmed
@@ -225,6 +228,12 @@ public class Sensor extends SensorPOA
 	 */
 	@Override
 	public void active(boolean newActive) {
+		if(newActive) {
+			this.log("Sensor activated");
+		} else {
+			this.log("Sensor deactivated");
+		}
+		
 		this.active = newActive;
 		
 		// Update the GUI, Check if we're alarmed.
@@ -258,7 +267,8 @@ public class Sensor extends SensorPOA
 	 */
 	@Override
 	public String[] getLog() {
-		return (String[]) this.log.toArray();
+		String[] logs = new String[this.log.size()];
+		return this.log.toArray(logs);
 	}
 	
 	/**
