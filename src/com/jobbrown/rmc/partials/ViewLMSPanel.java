@@ -18,6 +18,7 @@ import java.awt.event.ActionEvent;
 import javax.swing.JSlider;
 
 public class ViewLMSPanel extends JPanel {
+	
 	// The LMS which this view is showing
 	private LMS model;
 	

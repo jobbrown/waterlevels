@@ -47,6 +47,48 @@ public class LMS extends LMSPOA
 	}
 	
 	/**
+	 * Register this LMS with the RMC so it knows of its existence
+	 */
+	public void registerWithRMC()
+	{
+		// Register with the RMC
+		if(this.rmc.registerLMS(this.location)) {
+			this.log("Registered with RMC");
+			return;
+		}
+		
+		this.log("Failed to register with RMC. Probable name clash.");
+		System.exit(1);
+	}
+	
+	/** 
+	 * Loop through the zones and find the sensor by it's ID number.
+	 * If it isnt found, null is returned 
+	 * 
+	 * @param ID the ID number of the sensor
+	 */
+	public Sensor findSensorByID(int ID)
+	{
+		Iterator<Entry<String, ArrayList<Sensor>>> it = sensors.entrySet().iterator();
+		
+		while(it.hasNext()) 
+		{
+			Map.Entry pair = (Map.Entry) it.next();
+			ArrayList<Sensor> sensors = (ArrayList<Sensor>) pair.getValue();
+			
+			for(Sensor sensor : sensors) {
+				if(sensor.id() == ID)
+				{
+					return sensor;
+				}
+			}
+			
+		}
+		
+		return null;
+	}
+	
+	/**
 	 * Allow a Sensor to raise an alarm with this LMS
 	 * 
 	 * @param String zone the zone that the sensor is in
@@ -86,55 +128,23 @@ public class LMS extends LMSPOA
 		}
 	}
 	
-	
-	/** 
-	 * Loop through the sensors and find the sensor by it's ID number
-	 * 
-	 * @param ID
-	 */
-	public Sensor findSensorByID(int ID)
-	{
-		Iterator<Entry<String, ArrayList<Sensor>>> it = sensors.entrySet().iterator();
-		
-		while(it.hasNext()) 
-		{
-			Map.Entry pair = (Map.Entry) it.next();
-			ArrayList<Sensor> sensors = (ArrayList<Sensor>) pair.getValue();
-			
-			for(Sensor sensor : sensors) {
-				if(sensor.id() == ID)
-				{
-					return sensor;
-				}
-			}
-			
-		}
-		
-		return null;
-	}
-	
 	/**
-	 * Register this LMS with the RMC so it knows of its existence
+	 * This function allows a Sensor to register itself with this LMS. 
+	 * 
+	 * It will look for the Sensor on the naming service, get its zone
+	 * and then add the sensor against the zone in the sensor hash map.
+	 * 
+	 * This action is logged.
+	 * 
+	 * @param name the name of the sensor on the naming service
 	 */
-	public void registerWithRMC()
-	{
-		// Register with the RMC
-		if(this.rmc.registerLMS(this.location)) {
-			this.log("Registered with RMC");
-			return;
-		}
-		
-		this.log("Failed to register with RMC. Probable name clash.");
-		System.exit(1);
-	}
-
 	@Override
 	public boolean registerSensor(String name) {
 		// Get an instance of the Sensor
 		NamingContextExt namingService = CorbaHelper.getNamingService(this._orb());
 		Sensor sensor = null;
 		
-		// Get a reference to the LMS
+		// Get a reference to the sensor
 	    try {
 	    	sensor = SensorHelper.narrow(namingService.resolve_str(name));
 		} catch (NotFound | CannotProceed | InvalidName e) {
@@ -144,9 +154,9 @@ public class LMS extends LMSPOA
 		}
 	    
 	    if(sensor != null) {
-	    	// Lets check this sensors zone already exists
+	    	// Lets check this sensors zone already exists. If not, create it
 		    if( ! this.sensors.containsKey(sensor.zone())) {
-		    	// It doesn't, lets add this sensor
+		    	// Create that zone
 		    	ArrayList<Sensor> sensors = new ArrayList<Sensor>();
 		    	
 		    	// Put the array into the sensors hashmap
@@ -161,10 +171,11 @@ public class LMS extends LMSPOA
 		    	// A little feedback
 		    	this.log(name + " has registered with the LMS in zone " + sensor.zone() + ". There are " + this.sensors.get(sensor.zone()).size() + " Sensors in this Zone.");
 		    	
+		    	// Return success
 		    	return true;
 		    }
 	    } else {
-	    	this.log("Returned Sensor was null");
+	    	this.log("Returned sensor was null");
 	    }
 	    
 		// At this stage, the sensor must exist already
@@ -173,6 +184,8 @@ public class LMS extends LMSPOA
 
 	/**
 	 * Get this sensors log
+	 * 
+	 * @return String[] array of all log entries
 	 */
 	@Override
 	public String[] getLog() {
@@ -181,7 +194,9 @@ public class LMS extends LMSPOA
 	}
 	
 	/**
-	 * Add a string to the log for this LMS. Prefixes the 
+	 * Add a string to the log for this LMS. 
+	 * Prefixes the log message with the current timestamp
+	 * 
 	 * @param str
 	 */
 	public void log(String str)
@@ -198,13 +213,21 @@ public class LMS extends LMSPOA
 		System.out.println(loggable); 
 	}
 
+	/**
+	 * Return this LMS's location name. 
+	 * This is provided at start up of LMSLauncher
+	 * 
+	 * @return String location the location name
+	 */
 	@Override
 	public String getLocation() {
 		return this.location;
 	}
 
 	/**
-	 * Get an array of all the sensors in this LMS
+	 * Get an array of all the sensors in this LMS.
+	 * 
+	 * @return Sensor[] an array of sensors in this LMS
 	 */
 	@Override
 	public Sensor[] getAllSensors() {	
@@ -220,15 +243,6 @@ public class LMS extends LMSPOA
 		Sensor[] sensorRealArray = new Sensor[sensorArray.size()];
 		
 		return sensorArray.toArray(sensorRealArray);
-		/*
-		int i = 0;
-		for(Sensor sen : sensorArray) {
-			sensorRealArray[i] = sen;
-			i++;
-		}
-		
-		return sensorRealArray;
-		*/
 	}
 	
 }
